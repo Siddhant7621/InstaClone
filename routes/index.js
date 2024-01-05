@@ -18,14 +18,31 @@ router.get('/login', function(req, res) {
 });
 
 router.get('/feed', isLoggedIn,async function(req, res) {
+  const user = await userModel.findOne({username:req.session.passport.user});
   const posts = await postModel.find().populate("user");
-  res.render('feed', {footer: true, posts});
+  console.log(posts);
+  res.render('feed', {footer: true, posts,user});
 });
 
 router.get('/profile', isLoggedIn,async function(req, res) {
 
   const user = await userModel.findOne({ username: req.session.passport.user}).populate("posts")
   res.render('profile', {footer: true, user});
+});
+
+router.get('/like/post/:id', isLoggedIn,async function(req, res) {
+  const user = await userModel.findOne({ username: req.session.passport.user});
+  const post = await postModel.findOne({_id: req.params.id});
+
+  if(post.likes.indexOf(user._id) === -1){
+    post.likes.push(user._id);
+  }
+  else {
+    post.likes.splice(post.likes.indexOf(user._id),1);
+  }
+
+  await post.save();
+  res.redirect("/feed");
 });
 
 router.get('/search', isLoggedIn,function(req, res) {
@@ -65,7 +82,7 @@ router.post('/login', passport.authenticate("local",{
 router.post('/logout' ,function(req, res,next) {
   req.logout(function(err) {
     if (err) { return next(err); }
-    res.redirect('/');
+    res.redirect('/login');
   });
 });
 
@@ -96,6 +113,38 @@ router.post("/upload", isLoggedIn,upload.single("image"),async function(req,res)
   user.posts.push(post._id);
   await user.save();
   res.redirect("/feed");
+});
+
+// router.post('/upload', isLoggedIn, upload.single("file"), async function (req, res, next) {
+//   if (!req.file) {
+//     return res.status(404).send("No files were given");
+//   }
+
+//   const user = await userModel.findOne({ username: req.session.passport.user });
+
+//   try {
+//     const post = await postModel.create({
+//       picture: req.file.filename,
+//       user: user._id,
+//       caption: req.body.caption
+//     });
+
+//     user.posts.push(post._id);
+//     await user.save();
+//     res.redirect("/feed");
+//   } catch (error) {
+//     // Log the error for debugging
+//     console.error(error);
+
+//     // Send a more detailed response to help identify the issue
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
+router.get('/username/:username', isLoggedIn,async function(req, res) {
+  const regex = new RegExp(`^${req.params.username}`,'i');
+  const users = await userModel.find({username:regex});
+  res.json(users);
 });
 
 function isLoggedIn(req,res,next){

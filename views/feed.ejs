@@ -84,13 +84,20 @@
           </div>
           <div class="options w-full px-4 flex justify-between items-center text-[1.4rem]">
             <div class="flex gap-3 mt-2">
-              <i class="ri-heart-3-line"></i>
+              <a href="/like/post/<%= elem._id %>">
+                <% if(elem.likes.indexOf(user._id) !== -1){ %>
+                  <i class="ri-heart-3-fill text-red-600"></i>
+                <% } else { %>
+                  <i class="ri-heart-3-line"></i>
+                <% } %>
+                
+              </a>
               <i class="ri-chat-3-line"></i>
               <i class="ri-share-circle-line"></i>
             </div>
             <i class="ri-bookmark-line"></i>
           </div>
-          <h3 class="px-4 mt-2 text-sm leading-none tracking-tight"> likes</h3>
+          <h3 class="px-4 mt-2 text-sm leading-none tracking-tight"><%= elem.likes.length%> likes</h3>
           <h2 class="text-white font-light text-sm mt-2"><span class="font-semibold pl-4 pr-2"><%= elem.user.username %></span><%= elem.caption%></h2>
         </div>
 
